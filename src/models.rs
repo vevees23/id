@@ -6,36 +6,65 @@ use crate::error::AuthError;
 
 /* Database Models */
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct dbUser {
     pub user_uuid: String,
     pub user_id: String,
     pub full_name: String,
+    pub user_name: String,
     pub email: String,
     pub phone: String,
     #[serde(skip_serializing)]
     pub password_hash: String,
     pub created_at: DateTime<Utc>,
-    pub created_ip: String,
     pub verified: bool,
-    pub verification_token: Option<String>,
-    pub verified_at: Option<DateTime<Utc>>,
-    pub verified_ip: Option<String>,
-    pub last_login: Option<DateTime<Utc>>,
-    pub last_login_ip: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct dbUserToken {
     pub user_id: String,
     pub token: String,
-    pub token_type: String,
+    pub token_type: TokenType,
     pub created_at: DateTime<Utc>,
     pub expires_at: DateTime<Utc>,
     pub used: bool,
-    pub used_at: Option<DateTime<Utc>>,
-    pub used_ip: Option<String>,
-    pub created_ip: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub enum TokenType {
+    #[serde(rename = "verify_email")]
+    VerifyEmail,
+    #[serde(rename = "password_reset")]
+    PasswordReset,
+    #[serde(rename = "auth_refresh")]
+    AuthRefresh,
+    #[serde(rename = "magic_link")]
+    MagicLink,
+}
+
+impl std::fmt::Display for TokenType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TokenType::VerifyEmail => write!(f, "verify_email"),
+            TokenType::PasswordReset => write!(f, "password_reset"),
+            TokenType::AuthRefresh => write!(f, "auth_refresh"),
+            TokenType::MagicLink => write!(f, "magic_link"),
+        }
+    }
+}
+
+impl std::str::FromStr for TokenType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "verify_email" => Ok(Self::VerifyEmail),
+            "password_reset" => Ok(Self::PasswordReset),
+            "auth_refresh" => Ok(Self::AuthRefresh),
+            "magic_link" => Ok(Self::MagicLink),
+            _ => Err(()),
+        }
+    }
 }
 
 
@@ -66,7 +95,6 @@ impl IDUniRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ForgotPasswordRequest {
     pub email: String,
-    pub ip: String,
 }
 
 impl ForgotPasswordRequest {

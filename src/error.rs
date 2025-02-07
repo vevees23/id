@@ -35,6 +35,8 @@ pub enum AuthError {
     TokenNotFound,
     #[error("Token expired")]
     TokenExpired,
+    #[error("Passwords do not match")]
+    PasswordMismatch,
 }
 
 impl AuthError {
@@ -55,6 +57,8 @@ impl AuthError {
             AuthError::EmailAlreadyExists => StatusCode::CONFLICT,
             AuthError::TokenNotFound => StatusCode::NOT_FOUND,
             AuthError::TokenExpired => StatusCode::UNAUTHORIZED,
+            AuthError::PasswordMismatch => StatusCode::BAD_REQUEST,
+            _ => StatusCode::INTERNAL_SERVER_ERROR, // Add wildcard arm
         }
     }
 
